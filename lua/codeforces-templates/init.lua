@@ -59,6 +59,7 @@ M.create_source_buffer = function(lang)
 	end
 
 	vim.api.nvim_buf_set_name(bufnr, filename)
+	vim.api.nvim_set_option_value("buflisted", true, { buf = bufnr })
 	vim.api.nvim_set_current_buf(bufnr)
 	vim.cmd("write")
 
@@ -70,13 +71,14 @@ M.create_input_buffer = function()
 	local bufnr = vim.fn.bufadd(filename)
 	vim.fn.bufload(bufnr)
 	vim.api.nvim_buf_set_name(bufnr, filename)
+	vim.api.nvim_set_option_value("buflisted", true, { buf = bufnr })
 	vim.api.nvim_set_current_buf(bufnr)
 	vim.cmd("write")
 end
 
 M.create_template = function(lang)
-	M.create_source_buffer(lang)
 	M.create_input_buffer()
+	M.create_source_buffer(lang)
 end
 
 vim.api.nvim_create_user_command("CFCreateTemplate", function(opts)
