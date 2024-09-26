@@ -4,6 +4,12 @@ M._templates = {
 	cpp = "templates/solution.cpp",
 	python = "templates/solution.py",
 	go = "templates/solution.go",
+	swift = "templates/solution.swift",
+}
+
+M._test_commands = {
+	cpp = { "sh", "-c", "g++ -std=c++11 solution.cpp -o solution && ./solution < input.txt" },
+	go = { "go", "run", "solution.go && ./solution < input.txt" },
 }
 
 M.setup = function(opts)
@@ -81,8 +87,32 @@ M.create_template = function(lang)
 	M.create_source_buffer(lang)
 end
 
+M.run_tests = function(lang)
+	local command = M._test_commands[lang]
+	if not command then
+		print("No test command for " .. lang)
+		return
+	end
+	local output = vim.fn.system(command)
+	print("Result\n" .. output)
+	if vim.v.shell_error ~= 0 then
+		print("Command failed with error code: " .. vim.v.shell_error)
+	else
+		print("Command output:\n" .. output)
+	end
+end
+
 vim.api.nvim_create_user_command("CFCreateTemplate", function(opts)
 	M.create_template(opts.args)
+end, {
+	nargs = 1,
+	complete = function(ArgLead, CmdLine, CursorPos)
+		return { "python", "cpp", "go" }
+	end,
+})
+
+vim.api.nvim_create_user_command("CFTest", function(opts)
+	M.run_tests(opts.args)
 end, {
 	nargs = 1,
 	complete = function(ArgLead, CmdLine, CursorPos)
