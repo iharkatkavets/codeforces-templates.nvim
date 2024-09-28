@@ -2,19 +2,18 @@ local M = {}
 
 M._templates = {
 	cpp = "templates/solution.cpp",
-	python = "templates/solution.py",
+	py = "templates/solution.py",
 	go = "templates/solution.go",
-	swift = "templates/solution.swift",
 }
 
 M._test_commands = {
 	cpp = { "sh", "-c", "g++ -std=c++11 solution.cpp -o solution && ./solution < input.txt" },
-	go = { "go", "run", "solution.go && ./solution < input.txt" },
+	go = { "sh", "-c", "go run solution.go && ./solution < input.txt" },
+	py = { "sh", "-c", "python3 solution.py < input.txt" },
 }
 
 M.setup = function(opts)
 	opts = opts or {}
-	print("CodeForces plugin loaded!")
 end
 
 local get_plugin_base_path = function()
@@ -72,6 +71,18 @@ M.create_source_buffer = function(lang)
 	fh:close()
 end
 
+M.close_default_empty_buffer = function()
+	local buffers = vim.api.nvim_list_bufs()
+	for _, buf in ipairs(buffers) do
+		local bufname = vim.fn.bufname(buf)
+		local lines_count = vim.api.nvim_buf_line_count(buf)
+		local first_line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)
+		if bufname == "" and lines_count == 1 and first_line[1] == "" then
+			vim.cmd("bw" .. buf)
+		end
+	end
+end
+
 M.create_input_buffer = function()
 	local filename = get_file_name("input", "txt")
 	local bufnr = vim.fn.bufadd(filename)
@@ -85,6 +96,7 @@ end
 M.create_template = function(lang)
 	M.create_input_buffer()
 	M.create_source_buffer(lang)
+	M.close_default_empty_buffer()
 end
 
 M.run_tests = function(lang)
@@ -94,11 +106,11 @@ M.run_tests = function(lang)
 		return
 	end
 	local output = vim.fn.system(command)
-	print("Result\n" .. output)
 	if vim.v.shell_error ~= 0 then
 		print("Command failed with error code: " .. vim.v.shell_error)
-	else
 		print("Command output:\n" .. output)
+	else
+		print(output)
 	end
 end
 
@@ -107,7 +119,7 @@ vim.api.nvim_create_user_command("CFCreateTemplate", function(opts)
 end, {
 	nargs = 1,
 	complete = function(ArgLead, CmdLine, CursorPos)
-		return { "python", "cpp", "go" }
+		return { "py", "cpp", "go" }
 	end,
 })
 
@@ -116,7 +128,7 @@ vim.api.nvim_create_user_command("CFTest", function(opts)
 end, {
 	nargs = 1,
 	complete = function(ArgLead, CmdLine, CursorPos)
-		return { "python", "cpp", "go" }
+		return { "py", "cpp", "go" }
 	end,
 })
 

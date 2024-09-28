@@ -4,10 +4,11 @@
 using namespace std;
 using vi = vector<int>;
 
-void solve() {
+int solve() {
     int n;
     cin >> n;
-    // Your code here
+
+    return 0;
 }
 
 int main() {
@@ -16,5 +17,8 @@ int main() {
 
     int t;
     cin >> t;
-    while (t--) solve();
+    while (t--) {
+        int result = solve();
+        cout << result;
+    }
 }
